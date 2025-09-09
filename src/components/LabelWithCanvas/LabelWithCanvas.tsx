@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { generateUUID } from '../../common/utils';
 import box from '../../assets/box.svg';
 import circle from '../../assets/circle.svg';
 import polygon from '../../assets/polygon.svg';
+import defaultimg from '../../assets/defaultimg.jpg';
 
 export type Shape = {
   type: 'rect' | 'circle' | 'polygon';
@@ -53,6 +54,13 @@ const LabelWithCanvas: React.FC<LabelWithCanvasProps> = ({ width, height }) => {
       y: event.clientY - rect.top
     }
   }
+
+  useEffect(() => {
+    // 页面加载时，默认加载一张图片
+    const img = new Image();
+    img.onload = () => handleImageLoad(img);
+    img.src = defaultimg; // 默认图片路径
+  }, []);
 
   // 绘制所有已保存的框和当前预览框，先绘制图片再绘制标注
   const redraw = useCallback((previewShape?: Shape) => {
@@ -279,7 +287,7 @@ const LabelWithCanvas: React.FC<LabelWithCanvasProps> = ({ width, height }) => {
 
   return (
     <div>
-      <h1>React Canvas Label Page</h1>
+      <h1>Label Image with Canvas</h1>
       <div className='label-page'>
         <div className='settings-container'>
           <ul>

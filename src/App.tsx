@@ -6,6 +6,7 @@ import './App.css'
 import LabelPage from './pages/LabelPage';
 import WebGLPage from './pages/webGLPage';
 import HomePage from './pages/HomePage';
+import ThreePage from './pages/ThreePage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/labelpage" element={<LabelPage />} />
+          <Route path="/three" element={<ThreePage />} />
           <Route path="/webgl" element={<WebGLPage />} />
         </Routes>
       </div>

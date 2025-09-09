@@ -1,15 +1,13 @@
 import React from 'react';
-// import WebGLCom from './../components/WebGLCom/WebGLCom';
-import ThreeScene from '../components/ThreeScene/ThreeScene';
-const LabelPage: React.FC = () => {
+import WebGLCom from './../components/WebGLCom/WebGLCom';
+const WebGLPage: React.FC = () => {
 
   return (
     <div>
-      <h1>Three Page</h1>
-      <ThreeScene />
-      {/* <WebGLCom /> */}
+      <h1>WebGL Page</h1>
+      <WebGLCom />
     </div>
   );
 };
 
-export default LabelPage;
+export default WebGLPage;

@@ -52,6 +52,13 @@
         color: #888;
       }
   }
+  .three-section {
+    ::after {
+        content: ' | ';
+        padding: 0 0.5em;
+        color: #888;
+      }
+  }
 }
 .content-container {
   margin: 0 1rem;
