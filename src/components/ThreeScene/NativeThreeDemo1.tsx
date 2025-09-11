@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const NativeThreeDemo1: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -7,6 +8,7 @@ const NativeThreeDemo1: React.FC = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const isInitialized = useRef(false);// 添加初始化标记, 避免重复初始化
+  const controls = useRef<OrbitControls | null>(null);
 
   const initScene = () => {
     if (isInitialized.current) return;
@@ -48,6 +50,17 @@ const NativeThreeDemo1: React.FC = () => {
    
   }
 
+  const createOrbitControls = () => {
+    if (!cameraRef.current || !rendererRef.current) return;
+    // 创建轨道控制器，轨道控制器可以围绕目标进行轨道运动，可以旋转、缩放和移动相机
+    controls.current = new OrbitControls(cameraRef.current, rendererRef.current.domElement);
+  }
+  const renderLoop = () => {
+    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
+    rendererRef.current.render(sceneRef.current, cameraRef.current);
+    controls.current?.update(); // 手动JS更新过摄像机的信息， 必须调用轨道控制器update 方法
+    requestAnimationFrame(renderLoop); // 根据当前浏览器的刷新帧率，递归调用渲染函数，好处： 当浏览器窗口不可见时，渲染会自动暂停，节省资源
+  }
   useEffect(() => {
     if (isInitialized.current) return; // 如果已经初始化，直接返回
     // 清理现有的canvas元素
@@ -56,12 +69,14 @@ const NativeThreeDemo1: React.FC = () => {
     }
 
     initScene();
+    createOrbitControls();
     createCube();
     rendererRef.current?.render(sceneRef.current!, cameraRef.current!);
 
     if (mountRef.current && rendererRef.current) {
       mountRef.current.appendChild(rendererRef.current.domElement);
     }
+    renderLoop();
 
     return () => {
       // window.removeEventListener('resize', () => {});

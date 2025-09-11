@@ -7,6 +7,9 @@ import LabelPage from './pages/LabelPage';
 import WebGLPage from './pages/webGLPage';
 import HomePage from './pages/HomePage';
 import ThreePage from './pages/ThreePage';
+import NativeThreeDemo1 from './components/ThreeScene/NativeThreeDemo1';
+import Preview3DCloud from './components/ThreeScene/Preview3DCloud';
+import MockBinGenerator from './components/ThreeScene/MockBinGenerator';
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/labelpage" element={<LabelPage />} />
           <Route path="/three" element={<ThreePage />} />
+          <Route path="/three/demo1" element={<NativeThreeDemo1 />} />
+          <Route path="/three/preview" element={<Preview3DCloud />} />
+          <Route path="/three/mockbin" element={<MockBinGenerator />} />
           <Route path="/webgl" element={<WebGLPage />} />
         </Routes>
       </div>

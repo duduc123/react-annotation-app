@@ -1,13 +1,22 @@
 import React from 'react';
 // import ThreeScene from '../components/ThreeScene/ThreeScene';
 import NativeThreeDemo1 from '../components/ThreeScene/NativeThreeDemo1';
+import PointCloudAnnotation from '../components/ThreeScene/PointCloudAnnotation';
+import Label3DCloud from '../components/ThreeScene/Label3DCloud';
+import Preview3DCloud from '../components/ThreeScene/Preview3DCloud';
+import MockBinGenerator from '../components/ThreeScene/MockBinGenerator';
+
 const ThreePage: React.FC = () => {
 
   return (
     <div>
       {/* <h1>Three.js Page</h1> */}
-      <NativeThreeDemo1 />
+      {/* <PointCloudAnnotation /> */}
+      <Preview3DCloud />
+      {/* <NativeThreeDemo1 /> */}
       {/* <ThreeScene /> */}
+      {/* <Label3DCloud /> */}
+      {/* <MockBinGenerator /> */}
     </div>
   );
 };
