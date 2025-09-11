@@ -56,6 +56,10 @@ const NativeThreeDemo1: React.FC = () => {
     controls.current = new OrbitControls(cameraRef.current, rendererRef.current.domElement);
     controls.current.enableDamping = true; // 启用阻尼（惯性），必须在动画循环中调用 update()
     controls.current.dampingFactor = 0.05; // 阻尼惯性系数，值越小惯性越大，默认值0.05
+    // controls.current.autoRotate = true; // 启用自动旋转
+    controls.current.autoRotateSpeed = 2.0; // 自动旋转速度，相当于在60fps时每旋转一周需要30秒。
+    controls.current.maxPolarAngle = Math.PI / 2; // 垂直旋转的最大角度，0到Math.PI之间，限制上下旋转范围，防止翻转
+    controls.current.minPolarAngle = 0; // 垂直旋转的最小角度，0到Math.PI之间，限制上下旋转范围，上面是0度，下面是90度
   }
   const renderLoop = () => {
     if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
