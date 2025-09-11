@@ -54,6 +54,8 @@ const NativeThreeDemo1: React.FC = () => {
     if (!cameraRef.current || !rendererRef.current) return;
     // 创建轨道控制器，轨道控制器可以围绕目标进行轨道运动，可以旋转、缩放和移动相机
     controls.current = new OrbitControls(cameraRef.current, rendererRef.current.domElement);
+    controls.current.enableDamping = true; // 启用阻尼（惯性），必须在动画循环中调用 update()
+    controls.current.dampingFactor = 0.05; // 阻尼惯性系数，值越小惯性越大，默认值0.05
   }
   const renderLoop = () => {
     if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
