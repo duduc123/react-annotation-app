@@ -10,6 +10,23 @@ const NativeThreeDemo2: React.FC = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const isInitialized = useRef(false);// 添加初始化标记, 避免重复初始化
   const controls = useRef<OrbitControls | null>(null);
+  const gui = useRef<dat.GUI | null>(null);
+  /**
+   * 初始化场景, 使用useRef原因如下
+   * 1.性能考虑：useRef 不会触发重新渲染，而 useState 会，GUI 控制器的值会频繁变化，如果使用 useState，每次调整滑块都会触发组件重新渲染，这会导致性能问题
+   * 2.数据同步：dat.GUI 是直接操作 DOM 的外部库，它不依赖于 React 的渲染机制， 我们只需要一个存储当前值的容器，不需要触发 React 的更新流程
+   * 3.实际使用场景：这些参数只在 GUI 的 onChange 回调和 Three.js 的渲染循环中使用，不需要在 React 组件的渲染中使用这些值
+   */
+  const cubeParams = useRef({
+    positionX: 1,
+    positionY: 0,
+    positionZ: 0,
+    rotationX: Math.PI / 4,
+    scaleX: 2,
+    scaleY: 1,
+    scaleZ: 1,
+    color: '#00ff00'
+  })
 
   const initScene = () => {
     if (isInitialized.current) return;
@@ -101,35 +118,71 @@ const NativeThreeDemo2: React.FC = () => {
     rendererRef.current.setSize(mountRef.current?.offsetWidth, mountRef.current?.offsetHeight);
   }
 
+  const setGUIPosition = () => {
+    if (mountRef.current && gui.current.domElement) {
+        // 设置 GUI 的样式
+        const guiElement = gui.current.domElement;
+        guiElement.style.position = 'absolute';
+        guiElement.style.top = '0';
+        guiElement.style.right = '0';
+      guiElement.style.zIndex = '1000';
+      mountRef.current.appendChild(guiElement);
+    }
+  }
+
+  
   const createGUI = () => {
-    const gui = new dat.GUI();
+    // if (gui.current) {
+    //   gui.current.destroy();
+    //   gui.current = null;
+    // }
+
+    gui.current = new dat.GUI({
+      autoPlace: false, // 不自动放置位置
+      width: 300, // 设置GUI宽度
+    });
+    setGUIPosition();
+    // 将 GUI 容器添加到 mountRef 中
+    if (mountRef.current && gui.current.domElement) {
+      mountRef.current.appendChild(gui.current.domElement);
+    }
+    
     const cube = sceneRef.current?.children.find(obj => obj.type === 'Mesh') as THREE.Mesh;
     if (!cube) return;
     // gui.add() 添加图形用户工具， 参数1： 关联DOM对象， JS对象， 3D物体对象， 参数2： 对象属性， 参数3： 属性最小值， 参数4： 属性最大值
-    gui.add(cube, 'visible', 0, 1); 
-    // gui.add(cube.rotation, 'x', 0, Math.PI * 2);
-    // gui.add(cube.rotation, 'y', 0, Math.PI * 2);
-    // gui.add(cube.rotation, 'z', 0, Math.PI * 2);
+    gui.current.add(cube, 'visible', 0, 1); 
 
-    const colorObj = {
-      'color': `#${cube.material.color.getHexString()}`,
-    }
-    gui.addColor(colorObj, 'color').onChange((value) => {
-      cube.material.color.set(value);
+    // const colorObj = {
+    //   'color': `#${cube.material.color.getHexString()}`,
+    // }
+    // gui.current.addColor(cubeParams.current, 'color').onChange((value) => {
+    //   cube.material.color.set(value);
+    // });
+
+    const folder = gui.current.addFolder('立方体位移'); // 创建一个文件夹
+    folder.add(cubeParams.current, 'positionX', 0, 5, 0.1).onChange((value) => { 
+      cube.position.x = value
+    });
+    folder.add(cubeParams.current, 'positionY', 0, 5, 0.1).onChange((value) => {
+      cube.position.y = value
+    });
+    folder.add(cubeParams.current, 'positionZ', 0, 5, 0.1).onChange((value) => {
+      cube.position.z = value
+    });
+    folder.open();
+    const folderScale = gui.current.addFolder('立方体缩放'); // 创建一个文件夹
+    folderScale.add(cubeParams.current, 'scaleX', 0, 5, 0.1).onChange((value) => {
+      cube.scale.x = value
+    });
+    folderScale.add(cubeParams.current, 'scaleY', 0, 5, 0.1).onChange((value) => {
+      cube.scale.y = value
+    });
+    folderScale.add(cubeParams.current, 'scaleZ', 0, 5, 0.1).onChange((value) => {
+      cube.scale.z = value
     });
 
-    const folder = gui.addFolder('立方体位移'); // 创建一个文件夹
-    folder.add(cube.position, 'x', 0, 5, 0.1); // 参数2 属性， 参数3 最小值， 参数4 最大值， 参数5： 步长
-    folder.add(cube.position, 'y', 0, 5, 0.1);
-    folder.add(cube.position, 'z', 0, 5, 0.1);
-
-    const folderScale = gui.addFolder('立方体缩放'); // 创建一个文件夹
-    folderScale.add(cube.scale, 'x', 0, 5, 0.1); // 参数2 属性， 参数3 最小值， 参数4 最大值， 参数5： 步长
-    folderScale.add(cube.scale, 'y', 0, 5, 0.1);
-    folderScale.add(cube.scale, 'z', 0, 5, 0.1);
-
     // 下拉菜单：
-    gui.add({ type: '1'}, 'type', {'type 1':'1', 'type 2':'2', 'type 3':'3'}).onChange((value) => {
+    gui.current.add({ type: '1'}, 'type', {'type 1':'1', 'type 2':'2', 'type 3':'3'}).onChange((value) => {
       console.log('选择的类型：', value);
       switch (value) {
         case '1':
@@ -156,7 +209,7 @@ const NativeThreeDemo2: React.FC = () => {
         }
     });
 
-    gui.add(controls.current, 'reset')
+    gui.current.add(controls.current, 'reset')
     // gui.close(); // 关闭GUI面板
     // gui.hide(); // 隐藏GUI面板
   }
@@ -177,7 +230,7 @@ const NativeThreeDemo2: React.FC = () => {
     createOrbitControls(); // 创建轨道控制器
     createAxesHelper(); // 创建坐标轴辅助线
     createCube(); // 创建立方体
-    moveCube(); // 移动立方体
+    // moveCube(); // 移动立方体
     createGUI();
     rendererRef.current?.render(sceneRef.current!, cameraRef.current!);
 
@@ -187,6 +240,10 @@ const NativeThreeDemo2: React.FC = () => {
     renderLoop();
 
     return () => {
+      // if (gui.current) {
+      //   gui.current.destroy();
+      //   gui.current = null;
+      // }
       window.removeEventListener('resize', renderResize);
       if (mountRef.current && rendererRef.current?.domElement) {
         mountRef.current.removeChild(rendererRef.current.domElement);
@@ -199,7 +256,7 @@ const NativeThreeDemo2: React.FC = () => {
 
   return (<div>
     {/* <p>Native Three.js Demo</p> */}
-    <div ref={mountRef} style={{ width: '100%', height: '100vh', padding: '5px 10px', margin: '2px' }} />
+    <div ref={mountRef} style={{ width: '100%', height: '100vh', padding: '5px 10px', margin: '2px', position: 'relative' }} />
   </div>);
 
 };

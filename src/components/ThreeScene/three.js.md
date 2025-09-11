@@ -66,6 +66,14 @@ doc: https://threejs.org/docs/index.html#api/zh/core/Object3D
       const cube = new THREE.Mesh(geometry, material);
     - 4.将立方体添加到场景中
       sceneRef.current.add(cube); // 创建网格物理对象， 传入图形和材质将立方体添加到场景中
+    - 为立方里的每一个面设置不同的颜色
+      const colorArr = ['red', 'blue', 'green', 'yellow', 'orange', 'pink'];
+      const materialsArr = colorArr.map((colorStr) => {
+        return new THREE.MeshBasicMaterial({ color: colorStr });
+      });
+      const cube = new THREE.Mesh(geometry, materialsArr); // 把材质数组传入 mesh 构造新的物理
+      sceneRef.current.add(cube);
+      })
   ## 1.6 循环创建: requestAnimationFrame
       在渲染循环中更新场景渲染
         - requestAnimationFrame(renderLoop)
