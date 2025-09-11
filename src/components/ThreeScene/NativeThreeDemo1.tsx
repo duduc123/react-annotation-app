@@ -61,6 +61,14 @@ const NativeThreeDemo1: React.FC = () => {
     controls.current?.update(); // 手动JS更新过摄像机的信息， 必须调用轨道控制器update 方法
     requestAnimationFrame(renderLoop); // 根据当前浏览器的刷新帧率，递归调用渲染函数，好处： 当浏览器窗口不可见时，渲染会自动暂停，节省资源
   }
+
+  const createAxesHelper = () => {
+    const axesHelper = new THREE.AxesHelper(5); // 参数表示轴线的长度
+    if (sceneRef.current) {
+      sceneRef.current.add(axesHelper);
+    }
+  }
+
   useEffect(() => {
     if (isInitialized.current) return; // 如果已经初始化，直接返回
     // 清理现有的canvas元素
@@ -68,9 +76,10 @@ const NativeThreeDemo1: React.FC = () => {
       mountRef.current.removeChild(rendererRef.current.domElement);
     }
 
-    initScene();
-    createOrbitControls();
-    createCube();
+    initScene(); // 初始化场景
+    createOrbitControls(); // 创建轨道控制器
+    createAxesHelper(); // 创建坐标轴辅助线
+    createCube(); // 创建立方体
     rendererRef.current?.render(sceneRef.current!, cameraRef.current!);
 
     if (mountRef.current && rendererRef.current) {
