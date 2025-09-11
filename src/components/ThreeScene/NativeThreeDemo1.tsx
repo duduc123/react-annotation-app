@@ -16,6 +16,7 @@ const NativeThreeDemo1: React.FC = () => {
       rendererRef.current.dispose();
       rendererRef.current = null; // 清理渲染器
     }
+    if (!mountRef.current) return;
 
     // 1.创建场景
     sceneRef.current = new THREE.Scene();
@@ -23,7 +24,7 @@ const NativeThreeDemo1: React.FC = () => {
     // 2.创建相机
     cameraRef.current = new THREE.PerspectiveCamera(
       75, // 视野角度，决定相机上下视野范围。常用值 45~75，值越大视野越广。
-      window.innerWidth / window.innerHeight, // 宽高比，通常设置为画布宽度 / 高度，保证场景不变形
+      mountRef.current?.offsetWidth / mountRef.current?.offsetHeight, // 宽高比，通常设置为画布宽度 / 高度，保证场景不变形
       0.1, // 近裁剪面，距离相机最近的可见距离，距离小于该值的物体不会被渲染。常用值如 0.1。
       1000 // 远裁剪面，距离相机最远的可见距离，距离大于该值的物体不会被渲染。常用值如 1000。
     );
@@ -31,7 +32,7 @@ const NativeThreeDemo1: React.FC = () => {
     
     // 3.创建渲染器
     rendererRef.current = new THREE.WebGLRenderer();// 创建WebGL渲染器
-    rendererRef.current.setSize(window.innerWidth, window.innerHeight);// 设置渲染器大小为窗口大小
+    rendererRef.current.setSize(mountRef.current?.offsetWidth, mountRef.current?.offsetHeight);// 设置渲染器大小为窗口大小
 
     isInitialized.current = true; // 标记为已初始化
   }
@@ -56,10 +57,14 @@ const NativeThreeDemo1: React.FC = () => {
     controls.current = new OrbitControls(cameraRef.current, rendererRef.current.domElement);
     controls.current.enableDamping = true; // 启用阻尼（惯性），必须在动画循环中调用 update()
     controls.current.dampingFactor = 0.05; // 阻尼惯性系数，值越小惯性越大，默认值0.05
-    // controls.current.autoRotate = true; // 启用自动旋转
+    controls.current.autoRotate = true; // 启用自动旋转
     controls.current.autoRotateSpeed = 2.0; // 自动旋转速度，相当于在60fps时每旋转一周需要30秒。
     controls.current.maxPolarAngle = Math.PI / 2; // 垂直旋转的最大角度，0到Math.PI之间，限制上下旋转范围，防止翻转
     controls.current.minPolarAngle = 0; // 垂直旋转的最小角度，0到Math.PI之间，限制上下旋转范围，上面是0度，下面是90度
+    controls.current.maxAzimuthAngle = 1.5 * Math.PI; // 水平旋转的最大角度, 范围是看到后面和左面， 右面那面看不到
+    controls.current.minAzimuthAngle = 0.5 * Math.PI; // 水平旋转的最小角度
+    controls.current.minDistance = 2; // 最小缩放距离
+    controls.current.maxDistance = 20; // 最大缩放距离
   }
   const renderLoop = () => {
     if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
@@ -75,6 +80,14 @@ const NativeThreeDemo1: React.FC = () => {
     }
   }
 
+  const renderResize = () => {
+    if (!cameraRef.current || !rendererRef.current || !mountRef.current) return;
+    cameraRef.current.aspect = mountRef.current?.offsetWidth / mountRef.current?.offsetHeight; // 更新相机宽高比
+    cameraRef.current.updateProjectionMatrix(); // 更新相机投影矩阵
+    rendererRef.current.setSize(mountRef.current?.offsetWidth, mountRef.current?.offsetHeight);
+  }
+
+
   useEffect(() => {
     if (isInitialized.current) return; // 如果已经初始化，直接返回
     // 清理现有的canvas元素
@@ -82,7 +95,12 @@ const NativeThreeDemo1: React.FC = () => {
       mountRef.current.removeChild(rendererRef.current.domElement);
     }
 
+    window.addEventListener('resize', renderResize); // 监听窗口大小变化事件
+
+    // renderResize(); // 初始化渲染尺寸
+    
     initScene(); // 初始化场景
+    renderResize(); // 初始化渲染尺寸
     createOrbitControls(); // 创建轨道控制器
     createAxesHelper(); // 创建坐标轴辅助线
     createCube(); // 创建立方体
@@ -94,7 +112,7 @@ const NativeThreeDemo1: React.FC = () => {
     renderLoop();
 
     return () => {
-      // window.removeEventListener('resize', () => {});
+      window.removeEventListener('resize', renderResize);
       if (mountRef.current && rendererRef.current?.domElement) {
         mountRef.current.removeChild(rendererRef.current.domElement);
       }
@@ -106,7 +124,7 @@ const NativeThreeDemo1: React.FC = () => {
 
   return (<div>
     {/* <p>Native Three.js Demo</p> */}
-    <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />
+    <div ref={mountRef} style={{ width: '100%', height: '100vh', padding: '5px 10px', margin: '2px' }} />
   </div>);
 
 };
