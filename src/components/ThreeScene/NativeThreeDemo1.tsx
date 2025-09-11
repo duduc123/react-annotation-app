@@ -51,6 +51,19 @@ const NativeThreeDemo1: React.FC = () => {
    
   }
 
+  // 移动立方体
+  const moveCube = () => {
+    if (!sceneRef.current) return;
+    // 获取场景中的所有网格对象
+    // cube.position.x = 6;
+    const cube = sceneRef.current.children.find(obj => obj.type === 'Mesh') as THREE.Mesh;
+    if (!cube) return;
+    cube.position.x = 5;
+    cube.rotation.x = Math.PI / 4; // 旋转45度
+    // cube.rotation.y = Math.PI / 4; // 旋转45度
+    cube.scale.set(2, 1, 1); // x轴放大2倍，y轴不变，z轴不变
+  }
+
   const createOrbitControls = () => {
     if (!cameraRef.current || !rendererRef.current) return;
     // 创建轨道控制器，轨道控制器可以围绕目标进行轨道运动，可以旋转、缩放和移动相机
@@ -59,12 +72,12 @@ const NativeThreeDemo1: React.FC = () => {
     controls.current.dampingFactor = 0.05; // 阻尼惯性系数，值越小惯性越大，默认值0.05
     controls.current.autoRotate = true; // 启用自动旋转
     controls.current.autoRotateSpeed = 2.0; // 自动旋转速度，相当于在60fps时每旋转一周需要30秒。
-    controls.current.maxPolarAngle = Math.PI / 2; // 垂直旋转的最大角度，0到Math.PI之间，限制上下旋转范围，防止翻转
-    controls.current.minPolarAngle = 0; // 垂直旋转的最小角度，0到Math.PI之间，限制上下旋转范围，上面是0度，下面是90度
-    controls.current.maxAzimuthAngle = 1.5 * Math.PI; // 水平旋转的最大角度, 范围是看到后面和左面， 右面那面看不到
-    controls.current.minAzimuthAngle = 0.5 * Math.PI; // 水平旋转的最小角度
-    controls.current.minDistance = 2; // 最小缩放距离
-    controls.current.maxDistance = 20; // 最大缩放距离
+    // controls.current.maxPolarAngle = Math.PI / 2; // 垂直旋转的最大角度，0到Math.PI之间，限制上下旋转范围，防止翻转
+    // controls.current.minPolarAngle = 0; // 垂直旋转的最小角度，0到Math.PI之间，限制上下旋转范围，上面是0度，下面是90度
+    // controls.current.maxAzimuthAngle = 1.5 * Math.PI; // 水平旋转的最大角度, 范围是看到后面和左面， 右面那面看不到
+    // controls.current.minAzimuthAngle = 0.5 * Math.PI; // 水平旋转的最小角度
+    // controls.current.minDistance = 2; // 最小缩放距离
+    // controls.current.maxDistance = 20; // 最大缩放距离
   }
   const renderLoop = () => {
     if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
@@ -104,6 +117,7 @@ const NativeThreeDemo1: React.FC = () => {
     createOrbitControls(); // 创建轨道控制器
     createAxesHelper(); // 创建坐标轴辅助线
     createCube(); // 创建立方体
+    moveCube(); // 移动立方体
     rendererRef.current?.render(sceneRef.current!, cameraRef.current!);
 
     if (mountRef.current && rendererRef.current) {
