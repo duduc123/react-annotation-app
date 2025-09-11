@@ -31,7 +31,7 @@ const NativeThreeDemo1: React.FC = () => {
     cameraRef.current.position.z = 5; // 设置相机位置，拉远相机以便看到立方体, 因为默认值是(0,0,0)
     
     // 3.创建渲染器
-    rendererRef.current = new THREE.WebGLRenderer();// 创建WebGL渲染器
+    rendererRef.current = new THREE.WebGLRenderer({ antialias: true });// 创建WebGL渲染器, antialias: 抗锯齿, 默认为false
     rendererRef.current.setSize(mountRef.current?.offsetWidth, mountRef.current?.offsetHeight);// 设置渲染器大小为窗口大小
 
     isInitialized.current = true; // 标记为已初始化
