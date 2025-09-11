@@ -57,7 +57,7 @@ doc: https://threejs.org/docs/index.html#api/zh/core/Object3D
     - cameraRef.current.updateProjectionMatrix();// 更新相机投影矩阵
     - rendererRef.current.setSize(window.innerWidth, window.innerHeight);
 
-  ## 1.5 立方里创建: 
+  ## 1.5 物体： 立方里创建 Mesh  
     - 1.创建图形，立方缓冲几何体，参数为宽、高、深
       const geometry = new THREE.BoxGeometry(1, 1, 1); 
     - 2.创建材质，基础材质-网格基础材质（线，面穿颜色描绘表面），参数为颜色
