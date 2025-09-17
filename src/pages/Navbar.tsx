@@ -11,7 +11,13 @@ const Navbar = () => {
         <Link to="/labelpage">Label Image with Canvas</Link>
       </div>
       <div className="three-section">
-        <Link to="/three">Three.js Page</Link>
+        <Link to="/three">Label 3D Cloud with Three.js</Link>
+      </div>
+      <div className="three-section">
+        <Link to="/three/demo1">Demo1</Link>
+      </div>
+      <div className="three-section">
+        <Link to="/three/demo2">Demo2</Link>
       </div>
       <div className="webgl-section">
         <Link to="/webgl">WebGL Page</Link>

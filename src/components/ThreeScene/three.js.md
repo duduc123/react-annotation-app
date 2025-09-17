@@ -100,6 +100,7 @@ doc: https://threejs.org/docs/index.html#api/zh/core/Object3D
   - 美团： https://developer.meituan.com/isv/announcement/detail?dockey=anno-all&id=announcement-4574 
 
 ## 点云基础知识：
-  - link: https://juejin.cn/post/7422338076528181258 
+  - three API doc: https://threejs.org/docs/#api/zh/core/Raycaster 
+  - link 当前端遇到了自动驾驶: https://juejin.cn/post/7422338076528181258 
 
   视屏讲解： https://www.bilibili.com/video/BV1HPYQz7Ed2/?spm_id_from=333.788.player.switch&vd_source=50a0e952162bc25deee2d84daf559b85&p=4

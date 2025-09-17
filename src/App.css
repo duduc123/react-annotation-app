@@ -68,3 +68,14 @@
   text-align: center;
   flex: 1;
 }
+
+.preview-3d-cloud {
+  .controls-panel {
+    display: flex;
+    justify-content: space-around;
+  }
+  .img-container {
+    display: flex;
+
+  }
+}

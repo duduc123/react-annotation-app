@@ -1,6 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';  
+import Annotation2DView from './Annotation2DView';
+import { preconnect } from 'react-dom';
 
 interface Point {
   x: number;
@@ -25,6 +27,21 @@ const Preview3DCloud: React.FC = () => {
   const [fileInfo, setFileInfo] = useState<{name: string, size: number} | null>(null);
   const [formatInfo, setFormatInfo] = useState<string>('');
   const [debugInfo, setDebugInfo] = useState<string>('');
+
+  const [annotations, setAnnotations] = useState<Array<{
+    id: string;
+    position: THREE.Vector3;
+    size: THREE.Vector3;
+    color: string;
+  }>>([]);
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [currentAnnotation, setCurrentAnnotation] = useState<{
+    start: THREE.Vector3;
+    end: THREE.Vector3;
+  } | null>(null);
+  const annotationBoxRef = useRef<THREE.Mesh | null>(null);
+  const annotationMaterialRef = useRef<THREE.MeshBasicMaterial | null>(null);
+
 
   // 解析Hesai LiDAR .bin文件
   const parseBinFile = async (arrayBuffer: ArrayBuffer): Promise<Point[]> => {
@@ -307,6 +324,7 @@ const Preview3DCloud: React.FC = () => {
 
   // 动画循环
   const animate = () => {
+    if (isAnnotating) return
     requestAnimationFrame(animate);
 
     if (controlsRef.current) {
@@ -327,6 +345,119 @@ const Preview3DCloud: React.FC = () => {
     rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
   };
 
+  const createAnnotationBox = (start: THREE.Vector3, end: THREE.Vector3) => {
+  if (!sceneRef.current) return;
+
+  // 计算立方体的中心和大小
+  const center = new THREE.Vector3(
+    (start.x + end.x) / 2,
+    (start.y + end.y) / 2,
+    (start.z + end.z) / 2
+  );
+  const size = new THREE.Vector3(
+    Math.abs(end.x - start.x),
+    Math.abs(end.y - start.y),
+    Math.abs(end.z - start.z)
+  );
+
+  // 创建立方体几何体
+  const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+  
+  // 创建边框材质
+  if (!annotationMaterialRef.current) {
+    annotationMaterialRef.current = new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.8
+    });
+  }
+
+  // 创建立方体网格
+  const box = new THREE.Mesh(geometry, annotationMaterialRef.current);
+  box.position.copy(center);
+  
+  // 添加到场景
+  sceneRef.current.add(box);
+  annotationBoxRef.current = box;
+
+  return { center, size };
+};
+
+const handleMouseDown = useCallback((event: MouseEvent) => {
+  if (!isAnnotating || !cameraRef.current || !rendererRef.current || !sceneRef.current || !sceneRef.current.children) return;
+
+  try {
+      const mouse = new THREE.Vector2();
+    const rect = rendererRef.current.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, cameraRef.current);
+    console.log(raycaster)
+    console.log(pointCloudRef.current)
+    // 获取射线与点云的交点
+    const intersects = raycaster.intersectObject(pointCloudRef.current!);
+    if (intersects.length > 0) {
+      setCurrentAnnotation({
+        start: intersects[0].point.clone(),
+        end: intersects[0].point.clone()
+      });
+    }
+  } catch(e) {
+    console.error(e);
+  }
+  
+}, [isAnnotating]);
+
+const handleMouseMove = useCallback((event: MouseEvent) => {
+  if (!isAnnotating || !currentAnnotation || !cameraRef.current || !rendererRef.current) return;
+
+  const mouse = new THREE.Vector2();
+  const rect = rendererRef.current.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, cameraRef.current);
+  // console.log('raycaster: ', raycaster);
+  const intersects = raycaster.intersectObject(pointCloudRef.current!);
+  // console.log('intersects: ', intersects);
+  if (intersects.length > 0) {
+    const newEnd = intersects[0].point.clone();
+    setCurrentAnnotation(prev => prev ? { ...prev, end: newEnd } : null);
+
+    // 更新或创建标注框
+    if (annotationBoxRef.current) {
+      sceneRef.current?.remove(annotationBoxRef.current);
+    }
+    createAnnotationBox(currentAnnotation.start, newEnd);
+  }
+}, [isAnnotating, currentAnnotation]);
+
+const handleMouseUp = useCallback(() => {
+  if (!isAnnotating || !currentAnnotation) return;
+
+  const result = createAnnotationBox(currentAnnotation.start, currentAnnotation.end);
+  if ( !result ) return;
+  const { center, size } = result;
+  const newAnnotation = {
+    id: Date.now().toString(),
+    position: center,
+    size,
+    color: '#00ff00'
+  };
+
+  setAnnotations(prev => [...prev, newAnnotation]);
+  setCurrentAnnotation(null);
+  // setIsAnnotating(false);
+}, [isAnnotating, currentAnnotation]);
+
+  const testIsAnnotating = useCallback(() => {
+    console.log('isAnnotating: ', isAnnotating);
+  },[isAnnotating]);
+
   useEffect(() => {
     if (mountRef.current && rendererRef.current?.domElement) {
       mountRef.current.removeChild(rendererRef.current.domElement);
@@ -335,18 +466,53 @@ const Preview3DCloud: React.FC = () => {
     animate();
     window.addEventListener('resize', handleResize);
 
+    //为标注添加事件监听
+    // const canvas = rendererRef.current?.domElement;
+    // if (canvas) {
+    //   canvas.addEventListener('mousedown', handleMouseDown);
+    //   canvas.addEventListener('mousemove', handleMouseMove);
+    //   canvas.addEventListener('mouseup', handleMouseUp);
+    // }
+
     return () => {
       window.removeEventListener('resize', handleResize);
       if (rendererRef.current) {
         rendererRef.current.dispose();
       }
+      // if (canvas) {
+      //   canvas.removeEventListener('mousedown', handleMouseDown);
+      //   canvas.removeEventListener('mousemove', handleMouseMove);
+      //   canvas.removeEventListener('mouseup', handleMouseUp);
+      // }
     };
   }, []);
 
+  // 添加新的 useEffect 来处理事件监听器的更新
+useEffect(() => {
+  const canvas = rendererRef.current?.domElement;
+  if (!canvas) return;
+
+  // 移除旧的事件监听器
+  canvas.removeEventListener('mousedown', handleMouseDown);
+  canvas.removeEventListener('mousemove', handleMouseMove);
+  canvas.removeEventListener('mouseup', handleMouseUp);
+
+  // 添加新的事件监听器
+  canvas.addEventListener('mousedown', handleMouseDown);
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas.addEventListener('mouseup', handleMouseUp);
+
+  return () => {
+    canvas.removeEventListener('mousedown', handleMouseDown);
+    canvas.removeEventListener('mousemove', handleMouseMove);
+    canvas.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [handleMouseDown, handleMouseMove, handleMouseUp]);
+
   return (
-    <div className="preview-3d-cloud" style={{ padding: '20px' }}>
-      <div className="controls-panel" style={{ marginBottom: '20px' }}>
-        <h2>Hesai LiDAR点云预览</h2>
+    <div className="preview-3d-cloud" style={{ padding: '0px' }}>
+      <div className="controls-panel" style={{ marginBottom: '10px' }}>
+        <h2>Hesai LiDAR点云标注</h2>
         <div className="file-upload" style={{ margin: '10px 0' }}>
           <input
             type="file"
@@ -369,7 +535,7 @@ const Preview3DCloud: React.FC = () => {
             选择Hesai LiDAR .bin文件
           </label>
         </div>
-        
+{/*         
         {fileInfo && (
           <div style={{ margin: '10px 0' }}>
             <p>文件名: {fileInfo.name}</p>
@@ -395,22 +561,40 @@ const Preview3DCloud: React.FC = () => {
               {debugInfo}
             </pre>
           </div>
-        )}
+        )} */}
         
         {isLoading && <p>正在加载点云数据...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {pointCount > 0 && <p>已加载 {pointCount} 个点</p>}
-      </div>
-
-      <div
-        ref={mountRef}
+        {/* {error && <p style={{ color: 'red' }}>{error}</p>}
+        {pointCount > 0 && <p>已加载 {pointCount} 个点</p>} */}
+      <button
+        onClick={() => setIsAnnotating((prev) => !prev)}
         style={{
-          width: '100%',
-          height: '600px',
-          border: '1px solid #ccc',
-          borderRadius: '4px'
+          padding: '8px 16px',
+          backgroundColor: isAnnotating ? '#ff0000' : '#007bff',
+          color: 'white',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          margin: '10px 0'
         }}
-      />
+      >
+        {isAnnotating ? '停止标注' : '开始标注'}
+      </button>
+      </div>
+  
+      <div className="img-container">
+        <div
+          ref={mountRef}
+          style={{
+            width: '70%',
+            height: '600px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+        <div style={{ width: '30%', padding: '0px 10px' }}>
+          <Annotation2DView annotations={annotations} />
+        </div>
+      </div>
     </div>
   );
 };

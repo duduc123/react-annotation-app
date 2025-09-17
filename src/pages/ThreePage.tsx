@@ -5,6 +5,7 @@ import PointCloudAnnotation from '../components/ThreeScene/PointCloudAnnotation'
 import Label3DCloud from '../components/ThreeScene/Label3DCloud';
 import Preview3DCloud from '../components/ThreeScene/Preview3DCloud';
 import MockBinGenerator from '../components/ThreeScene/MockBinGenerator';
+import Preview3DCloudWithFiber from '../components/ThreeScene/Preview3DCloudWithFiber';
 
 const ThreePage: React.FC = () => {
 
