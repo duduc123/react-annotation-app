@@ -1,3 +1,4 @@
+import type { Message } from "./ChatComponent";
 // 定义回调函数类型
 type DataCallback = (chunk: string) => void;
 type CompleteCallback = () => void;
@@ -37,6 +38,7 @@ type ErrorCallback = (error: Error) => void;
  * @param onErrorCallback 
  */
 export const callDeepseekStream = async (
+  messages: Message[],
   prompt: string,
   onDataCallback: DataCallback,
   onCompleteCallback: CompleteCallback,
@@ -77,7 +79,10 @@ export const callDeepseekStream = async (
      */
     const apiKey = 'sk-6822d6e1271d44f0a7de0b0f97ed08c8';
     const requestData = {
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: prompt }
+      ],
       model: "deepseek-chat",
       frequency_penalty: 0,
       max_tokens: 64,

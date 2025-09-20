@@ -5,7 +5,7 @@ import { callDeepseekStream } from './utils';
 import './ChatComponent.css';
 
 // 定义消息类型
-interface Message {
+export interface Message {
   id: number;
   content: string;
   role: 'user' | 'assistant' | 'error';
@@ -52,6 +52,7 @@ const ChatComponent: React.FC = () => {
     try {
       // 调用API获取流式响应
       await callDeepseekStream(
+        messages,
         inputValue,
         (chunk: string) => {
           // 处理流式数据
