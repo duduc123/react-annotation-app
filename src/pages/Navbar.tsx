@@ -8,6 +8,9 @@ const Navbar = () => {
         <Link to="/">Home Page</Link>
       </div>
       <div className="label-section">
+        <Link to="/aichat">AI Chat</Link>
+      </div>
+      <div className="label-section">
         <Link to="/labelpage">Label Image with Canvas</Link>
       </div>
       <div className="three-section">

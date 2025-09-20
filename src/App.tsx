@@ -11,6 +11,7 @@ import NativeThreeDemo1 from './components/ThreeScene/NativeThreeDemo1';
 import NativeThreeDemo2 from './components/ThreeScene/NativeThreeDemo2';
 import Preview3DCloud from './components/ThreeScene/Preview3DCloud';
 import MockBinGenerator from './components/ThreeScene/MockBinGenerator';
+import AIChatPage from './pages/AIChatPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/three/preview" element={<Preview3DCloud />} />
           <Route path="/three/mockbin" element={<MockBinGenerator />} />
           <Route path="/webgl" element={<WebGLPage />} />
+          <Route path="/aichat" element={<AIChatPage />} />
         </Routes>
       </div>
     </BrowserRouter>
