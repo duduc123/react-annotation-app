@@ -1,5 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';;
 import Navbar from './pages/Navbar';
 // import { Link } from 'react-router';
 import './App.css'
@@ -15,22 +17,24 @@ import AIChatPage from './pages/AIChatPage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Navbar />
-        <div className='content-container'>
-          <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/labelpage" element={<LabelPage />} />
-          <Route path="/three" element={<ThreePage />} />
-          <Route path="/three/demo1" element={<NativeThreeDemo1 />} />
-          <Route path="/three/demo2" element={<NativeThreeDemo2 />} />
-          <Route path="/three/preview" element={<Preview3DCloud />} />
-          <Route path="/three/mockbin" element={<MockBinGenerator />} />
-          <Route path="/webgl" element={<WebGLPage />} />
-          <Route path="/aichat" element={<AIChatPage />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <Provider store={store}>
+      <BrowserRouter>
+        <Navbar />
+          <div className='content-container'>
+            <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/labelpage" element={<LabelPage />} />
+            <Route path="/three" element={<ThreePage />} />
+            <Route path="/three/demo1" element={<NativeThreeDemo1 />} />
+            <Route path="/three/demo2" element={<NativeThreeDemo2 />} />
+            <Route path="/three/preview" element={<Preview3DCloud />} />
+            <Route path="/three/mockbin" element={<MockBinGenerator />} />
+            <Route path="/webgl" element={<WebGLPage />} />
+            <Route path="/aichat" element={<AIChatPage />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </Provider>
   )
 }
 
