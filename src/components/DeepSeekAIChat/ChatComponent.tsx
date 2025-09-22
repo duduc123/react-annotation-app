@@ -27,11 +27,20 @@ const ChatComponent: React.FC = () => {
   
   const [inputValue, setInputValue] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   // 初始化时加载历史记录
   useEffect(() => {
     dispatch(loadHistory());
   }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort(); // 组件卸载时，取消未完成的请求
+      }
+    };
+  }, []);
   
   // 滚动到最新消息
   const scrollToBottom = (): void => {
@@ -50,6 +59,10 @@ const ChatComponent: React.FC = () => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
     
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort(); // 取消上一个请求
+    }
+    abortControllerRef.current = new AbortController(); // 创建新的 AbortController
     // 如果没有当前会话，创建新会话
     if (!currentSession) {
       dispatch(startNewChat(inputValue.substring(0, 30) + (inputValue.length > 30 ? '...' : '')));
@@ -62,8 +75,6 @@ const ChatComponent: React.FC = () => {
     
     // 开始AI回复
     dispatch(startAIResponse());
-
-    const abortController = new AbortController();
 
     try {
       // 调用API获取流式响应
@@ -87,12 +98,12 @@ const ChatComponent: React.FC = () => {
           // 错误处理
           dispatch(setError(error.message));
         },
-        abortController.signal // 传递 AbortController 的 signal
+        abortControllerRef.current?.signal // 传递 AbortController 的 signal
       );
     } catch (error) {
       const err = error as Error;
       dispatch(setError(err.message));
-      abortController.abort();
+      abortControllerRef.current?.abort(); // 发生错误时，断开连接
     }
   };
   
