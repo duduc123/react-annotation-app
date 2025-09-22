@@ -3,6 +3,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
+  /* overflow-y: auto; */
 }
 
 .chat-header {
@@ -34,7 +36,7 @@
 
 .chat-messages {
   flex: 1;
-  overflow-y: auto;
+  /* overflow-y: auto; */
   padding: 16px;
 }
 
@@ -74,6 +76,19 @@
 .chat-input-container {
   padding: 16px;
   border-top: 1px solid #e0e0e0;
+  position: sticky;
+  bottom: 0;
+  z-index: 7;
+}
+.chat-input-container-placeholder {
+    z-index: -1;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--dsw-alias-bg-base) 24%, var(--dsw-alias-bg-base) 100%);
+    align-self: flex-end;
+    width: calc(100% + 32px);
+    height: 126px;
+    position: absolute;
+    bottom: 0;
+    right: -16px;
 }
 
 .chat-form {

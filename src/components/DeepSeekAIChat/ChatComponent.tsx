@@ -157,6 +157,7 @@ const ChatComponent: React.FC = () => {
       </div>
       
       <div className="chat-input-container">
+        <div className="chat-input-container-placeholder" />
         <form onSubmit={handleSubmit} className="chat-form">
           <textarea
             value={inputValue}
