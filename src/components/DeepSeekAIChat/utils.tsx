@@ -20,13 +20,15 @@ type ErrorCallback = (error: Error) => void;
  * 5. 如果连接断开，浏览器会自动尝试重新连接服务器。
  * 总结：SSE 是一种简单而有效的技术，适用于需要实时数据更新的应用场景。它通过保持持久连接和自动重连机制，确保客户端能够及时接收到服务器推送的最新信息。
  * @see https://developer.mozilla.org/zh-CN/docs/Web/API/Server-sent_events/Using_server-sent_events
+ * @see https://juejin.cn/post/7502268562096160768
  * SSE 前端实现方案：
  * 1. fetch + ReadableStream 它支持自定义 header、token、POST 请求等，兼容性和灵活性更好，适合现代前端框架（React/Vue/Next.js 等）
- * 1. 原生 EventSource API：现代浏览器内置了对 SSE 的支持，可以直接使用 EventSource 对象来建立连接和监听事件。
- * 2. Polyfill 库：对于不支持 SSE 的浏览器，可以使用 polyfill 库（如 event-source-polyfill）来提供兼容性支持。
+ *    衍生： @microsoft/fetch-event-source请求库，该库基于fetch进行了封装
+ * 2. 原生 EventSource API：现代浏览器内置了对 SSE 的支持，可以直接使用 EventSource 对象来建立连接和监听事件。
+ *    衍生： 使用 polyfill 库（如 event-source-polyfill）来， 支持 SSE 的老的IE浏览器。
+ *    衍生： reconnecting-eventsource：为 EventSource 增加自动重连功能。
  * 3. 第三方库：一些 JavaScript 库（如 RxJS）提供了对 SSE 的封装，简化了事件流的处理和管理。
  * 4. axios-eventsource：基于 axios 封装的 SSE 客户端，适合 axios 用户。。
- * 5. reconnecting-eventsource：为 EventSource 增加自动重连功能。
  */
 
 /**
