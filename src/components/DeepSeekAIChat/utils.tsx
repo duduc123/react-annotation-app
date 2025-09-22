@@ -80,7 +80,7 @@ export const callDeepseekStream = async (
       "top_logprobs": null
     }
      */
-    const apiKey = 'sk-6822d6e1271d44f0a7de0b0f97ed08c8';
+    const apiKey = '';
     const requestData = {
       messages: [
         ...messages.map(msg => ({ role: msg.role, content: msg.content })),
