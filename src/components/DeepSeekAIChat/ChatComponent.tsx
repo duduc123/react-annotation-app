@@ -62,7 +62,9 @@ const ChatComponent: React.FC = () => {
     
     // 开始AI回复
     dispatch(startAIResponse());
-    
+
+    const abortController = new AbortController();
+
     try {
       // 调用API获取流式响应
       await callDeepseekStream(
@@ -84,11 +86,13 @@ const ChatComponent: React.FC = () => {
         (error: Error) => {
           // 错误处理
           dispatch(setError(error.message));
-        }
+        },
+        abortController.signal // 传递 AbortController 的 signal
       );
     } catch (error) {
       const err = error as Error;
       dispatch(setError(err.message));
+      abortController.abort();
     }
   };
   

@@ -44,7 +44,8 @@ export const callDeepseekStream = async (
   prompt: string,
   onDataCallback: DataCallback,
   onCompleteCallback: CompleteCallback,
-  onErrorCallback: ErrorCallback
+  onErrorCallback: ErrorCallback,
+  abortSignal: AbortSignal
 ): Promise<void> => {
   try {
     /**
@@ -109,6 +110,7 @@ export const callDeepseekStream = async (
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(requestData),
+      signal: abortSignal, // 传递 AbortSignal 用于取消请求
     });
     if (!response.body) throw new Error('No response body');
     // response.body 是一个 ReadableStream，可以逐步读取服务器推送的数据（而不是等全部返回）。
@@ -118,6 +120,10 @@ export const callDeepseekStream = async (
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     while (true) {
+      if (abortSignal.aborted) {
+        reader?.cancel(); // 取消请求
+        return;
+      }
       const { value, done } = await reader.read(); // 读取数据块, value 是 Uint8Array
       if (done) break;
       buffer += decoder.decode(value, { stream: true }); // 解码为字符串
