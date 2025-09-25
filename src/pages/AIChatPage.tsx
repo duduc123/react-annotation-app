@@ -1,9 +1,12 @@
 import React from 'react';
 import ChatComponent from '../components/DeepSeekAIChat/ChatComponent';
+import Sidebar from '../components/DeepSeekAIChat/Sidebar';
+import './AIChatPage.css';
 
 const AIChatPage: React.FC = () => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="chat-layout">
+      <Sidebar />
       <ChatComponent />
     </div>
   );

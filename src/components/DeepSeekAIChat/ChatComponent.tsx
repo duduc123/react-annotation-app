@@ -2,20 +2,45 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { callDeepseekStream } from './utils';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { store } from '../../store';
+import {
+  startNewChat,
+  addUserMessage,
+  startAIResponse,
+  updateAIResponse,
+  completeAIResponse,
+  setError,
+  clearCurrentSession,
+} from '../../store/slices/chatSlice';
+import {
+  saveSession,
+  loadHistory,
+  setCurrentSessionId,
+} from '../../store/slices/historySlice';
 import './ChatComponent.css';
 
-// 定义消息类型
-export interface Message {
-  id: number;
-  content: string;
-  role: 'user' | 'assistant' | 'error';
-}
-
 const ChatComponent: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const dispatch = useAppDispatch();
+  const { currentSession, isLoading } = useAppSelector((state) => state.chat);
+  const { sessions } = useAppSelector((state) => state.history);
+  
   const [inputValue, setInputValue] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // 初始化时加载历史记录
+  useEffect(() => {
+    dispatch(loadHistory());
+  }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort(); // 组件卸载时，取消未完成的请求
+      }
+    };
+  }, []);
   
   // 滚动到最新消息
   const scrollToBottom = (): void => {
@@ -24,7 +49,7 @@ const ChatComponent: React.FC = () => {
   
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [currentSession?.messages]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     setInputValue(e.target.value);
@@ -34,64 +59,51 @@ const ChatComponent: React.FC = () => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
     
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort(); // 取消上一个请求
+    }
+    abortControllerRef.current = new AbortController(); // 创建新的 AbortController
+    // 如果没有当前会话，创建新会话
+    if (!currentSession) {
+      dispatch(startNewChat(inputValue.substring(0, 30) + (inputValue.length > 30 ? '...' : '')));
+    }
+    
     // 添加用户消息
-    const userMessage: Message = {
-      id: Date.now(),
-      content: inputValue,
-      role: 'user'
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
+    dispatch(addUserMessage(inputValue));
+    const userMessage = inputValue;
     setInputValue('');
-    setIsLoading(true);
     
-    // 添加一个空的消息用于AI回复
-    const aiMessageId: number = Date.now() + 1;
-    setMessages(prev => [...prev, { id: aiMessageId, content: '', role: 'assistant' }]);
-    
+    // 开始AI回复
+    dispatch(startAIResponse());
+
     try {
       // 调用API获取流式响应
       await callDeepseekStream(
-        messages,
-        inputValue,
+        currentSession?.messages || [],
+        userMessage,
         (chunk: string) => {
           // 处理流式数据
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === aiMessageId 
-                ? { ...msg, content: msg.content + chunk } 
-                : msg
-            )
-          );
+          dispatch(updateAIResponse(chunk));
         },
         () => {
           // 流结束时的回调
-          setIsLoading(false);
+          dispatch(completeAIResponse());
+          // 保存会话到历史
+          const currentSession = store.getState().chat.currentSession;
+          if (currentSession) {
+            dispatch(saveSession(currentSession));
+          }
         },
         (error: Error) => {
           // 错误处理
-          console.error('Error:', error);
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === aiMessageId 
-                ? { ...msg, content: `错误: ${error.message}`, role: 'error' } 
-                : msg
-            )
-          );
-          setIsLoading(false);
-        }
+          dispatch(setError(error.message));
+        },
+        abortControllerRef.current?.signal // 传递 AbortController 的 signal
       );
     } catch (error) {
-      console.error('Error in stream processing:', error);
       const err = error as Error;
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === aiMessageId 
-            ? { ...msg, content: `处理错误: ${err.message}`, role: 'error' } 
-            : msg
-        )
-      );
-      setIsLoading(false);
+      dispatch(setError(err.message));
+      abortControllerRef.current?.abort(); // 发生错误时，断开连接
     }
   };
   
@@ -102,15 +114,29 @@ const ChatComponent: React.FC = () => {
     }
   };
   
+  const handleNewChat = () => {
+    dispatch(clearCurrentSession());
+    setInputValue('');
+  };
+  
   return (
     <div className="chat-container">
+      <div className="chat-header">
+        <button onClick={handleNewChat} className="new-chat-button">
+          新建对话
+        </button>
+        <div className="chat-title">
+          {currentSession ? currentSession.title : '新对话'}
+        </div>
+      </div>
+      
       <div className="chat-messages">
-        {messages.length === 0 ? (
+        {!currentSession ? (
           <div className="empty-chat">
             <p>你好！有什么可以帮助你的吗？</p>
           </div>
         ) : (
-          messages.map((message) => (
+          currentSession.messages.map((message) => (
             <div 
               key={message.id} 
               className={`message ${message.role}`}
@@ -131,6 +157,7 @@ const ChatComponent: React.FC = () => {
       </div>
       
       <div className="chat-input-container">
+        <div className="chat-input-container-placeholder" />
         <form onSubmit={handleSubmit} className="chat-form">
           <textarea
             value={inputValue}

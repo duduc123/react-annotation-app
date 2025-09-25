@@ -6,7 +6,7 @@ const LabelPage: React.FC = () => {
 
   return (
     <div>
-      <LabelWithCanvas width={700} height={500}/>
+      <LabelWithCanvas width={600} height={400}/>
     </div>
   );
 };

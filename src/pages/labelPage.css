@@ -4,7 +4,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  height: 100vh;
+  /* height: 100vh; */
   .settings-container {
     width: 110px;
     display: flex;
@@ -35,7 +35,7 @@
   }
   .output-container {
     padding: 1rem;
-    min-width: 500px;
+    width: 500px;
     /* background-color: #5766aa; */
     label {
       display: block;
